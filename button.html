@@ -1,231 +1,189 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>cp</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Управление роборукой</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0d0d0d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
 
-  :root {
-    --bg: #f5f0e8;
-    --card: #fdfaf4;
-    --border: #ddd5c0;
-    --text: #2a2318;
-    --dim: #9e8f78;
-    --ok: #15803d;
-    --run: #b45309;
-    --accent: #c2410c;
-    --font: 'Space Mono', monospace;
-  }
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      color: #aaa;
+      text-transform: uppercase;
+    }
 
-  body {
-    background: var(--bg);
-    font-family: var(--font);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-  }
+    #status-text {
+      font-size: 1rem;
+      margin-bottom: 40px;
+      color: #555;
+      transition: color 0.3s;
+    }
 
-  .card {
-    width: 400px;
-    background: var(--card);
-    border: 1px solid var(--border);
-  }
+    #status-text.on {
+      color: #00e676;
+    }
 
-  .header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    padding: 16px 20px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .header-label {
-    font-size: 10px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-  .header-id {
-    font-size: 10px;
-    color: var(--border);
-    letter-spacing: 0.06em;
-  }
+    #status-text.off {
+      color: #ff1744;
+    }
 
-  .body { padding: 24px 20px 20px; }
+    /* Кнопка-круг */
+    .power-btn {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 4px solid #333;
+      background: #1a1a1a;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+    }
 
-  .power-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
-  .power-btn {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--dim);
-    font-family: var(--font);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .power-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .power-btn.active { border-color: var(--ok); color: var(--ok); background: #f0fdf4; }
+    .power-btn::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 4px solid #333;
+      border-top-color: transparent;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: border-color 0.3s;
+    }
 
-  .power-state { text-align: right; }
-  .power-state .s-label {
-    display: block;
-    font-size: 9px;
-    color: var(--dim);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    margin-bottom: 3px;
-  }
-  .power-state .s-val { font-size: 13px; font-weight: 700; }
+    /* Вертикальная черта символа питания */
+    .power-btn::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 30px;
+      background: #333;
+      position: absolute;
+      top: calc(50% - 30px);
+      left: calc(50% - 2px);
+      transition: background 0.3s;
+    }
 
-  .sep {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-  .sep-line { flex: 1; height: 1px; background: var(--border); }
-  .sep-text { font-size: 9px; color: var(--border); letter-spacing: 0.14em; text-transform: uppercase; }
+    /* Состояние ON */
+    .power-btn.on {
+      border-color: #00e676;
+      box-shadow: 0 0 30px #00e67688, 0 0 60px #00e67633;
+    }
 
-  .cmd-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 24px; }
-  .cmd-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--border);
-    font-family: var(--font);
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    cursor: not-allowed;
-    transition: all 0.15s;
-    text-align: left;
-  }
-  .cmd-btn .arrow { font-size: 10px; display: inline-block; transition: transform 0.15s; }
-  .cmd-btn:not(:disabled) { cursor: pointer; color: var(--text); }
-  .cmd-btn:not(:disabled):hover { border-color: var(--accent); color: var(--accent); background: #fff8f5; }
-  .cmd-btn:not(:disabled):hover .arrow { transform: translateX(4px); }
+    .power-btn.on::after {
+      border-color: #00e676;
+      border-top-color: transparent;
+    }
 
-  .status-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 14px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    font-size: 10px;
-    color: var(--dim);
-    letter-spacing: 0.04em;
-  }
-  .dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: var(--border);
-    flex-shrink: 0;
-    transition: background 0.3s;
-  }
-  .dot.idle  { background: var(--border); }
-  .dot.ready { background: var(--ok); }
-  .dot.run   { background: var(--run); animation: blink 0.5s ease-in-out infinite alternate; }
-  .dot.done  { background: var(--ok); }
-  .dot.off   { background: var(--accent); }
-  @keyframes blink { to { opacity: 0.25; } }
+    .power-btn.on::before {
+      background: #00e676;
+    }
 
-  .st-text { flex: 1; }
-  .st-time { font-size: 9px; color: var(--border); white-space: nowrap; }
-</style>
+    /* Состояние OFF */
+    .power-btn.off {
+      border-color: #ff1744;
+      box-shadow: 0 0 20px #ff174422;
+    }
+
+    .power-btn.off::after {
+      border-color: #ff1744;
+      border-top-color: transparent;
+    }
+
+    .power-btn.off::before {
+      background: #ff1744;
+    }
+
+    /* Анимация нажатия */
+    .power-btn:active {
+      transform: scale(0.96);
+    }
+
+    #error-msg {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #ff1744;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-<div class="card">
-  <div class="header">
-    <span class="header-label">control panel</span>
-    <span class="header-id">v1.0 / local</span>
-  </div>
-  <div class="body">
-    <div class="power-row">
-      <button class="power-btn" id="powerBtn" onclick="togglePower()">ON</button>
-      <div class="power-state">
-        <span class="s-label">состояние</span>
-        <span class="s-val" id="powerLabel">ОТКЛ</span>
-      </div>
-    </div>
 
-    <div class="sep">
-      <div class="sep-line"></div>
-      <span class="sep-text">команды</span>
-      <div class="sep-line"></div>
-    </div>
+  <h1>Роборука — кнопка вкл/выкл</h1>
+  <p id="status-text">Загрузка...</p>
 
-    <div class="cmd-list">
-      <button class="cmd-btn" id="cmd1" disabled onclick="runCmd(1)">Команда 1 <span class="arrow">→</span></button>
-      <button class="cmd-btn" id="cmd2" disabled onclick="runCmd(2)">Команда 2 <span class="arrow">→</span></button>
-      <button class="cmd-btn" id="cmd3" disabled onclick="runCmd(3)">Команда 3 <span class="arrow">→</span></button>
-    </div>
+  <button class="power-btn" id="btn" onclick="toggle()"></button>
 
-    <div class="status-bar">
-      <div class="dot idle" id="dot"></div>
-      <span class="st-text" id="stText">ожидание</span>
-      <span class="st-time" id="stTime">—</span>
-    </div>
-  </div>
-</div>
+  <p id="error-msg">Ошибка соединения с сервером</p>
 
-<script>
-  let powered = false, running = false;
+  <script>
+    // При загрузке страницы — запросить актуальное состояние с сервера
+    window.onload = async function () {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        applyState(data.powered);
+      } catch (e) {
+        showError();
+      }
+    };
 
-  function ts() { return new Date().toLocaleTimeString('ru-RU', { hour12: false }); }
-
-  function setStatus(text, cls) {
-    document.getElementById('stText').textContent = text;
-    document.getElementById('stTime').textContent = ts();
-    document.getElementById('dot').className = 'dot ' + cls;
-  }
-
-  function togglePower() {
-    if (running) return;
-    powered = !powered;
-    const btn = document.getElementById('powerBtn');
-    const lbl = document.getElementById('powerLabel');
-    const cmds = document.querySelectorAll('.cmd-btn');
-    if (powered) {
-      btn.classList.add('active'); btn.textContent = 'OFF';
-      lbl.textContent = 'ВКЛ';
-      cmds.forEach(b => b.disabled = false);
-      setStatus('система готова к работе', 'ready');
-    } else {
-      btn.classList.remove('active'); btn.textContent = 'ON';
-      lbl.textContent = 'ОТКЛ';
-      cmds.forEach(b => b.disabled = true);
-      setStatus('система выключена', 'off');
+    // Нажатие кнопки — отправить POST на сервер, применить ответ
+    async function toggle() {
+      try {
+        const res = await fetch('/api/toggle', { method: 'POST' });
+        const data = await res.json();
+        applyState(data.powered);
+      } catch (e) {
+        showError();
+      }
     }
-  }
 
-  function runCmd(n) {
-    if (!powered || running) return;
-    running = true;
-    document.querySelectorAll('.cmd-btn').forEach(b => b.disabled = true);
-    setStatus('выполняется команда ' + n + '...', 'run');
-    setTimeout(() => {
-      setStatus('команда ' + n + ' выполнена', 'done');
-      running = false;
-      if (powered) document.querySelectorAll('.cmd-btn').forEach(b => b.disabled = false);
-    }, 700);
-  }
-</script>
+    // Применить состояние к UI
+    function applyState(powered) {
+      const btn = document.getElementById('btn');
+      const status = document.getElementById('status-text');
+      const err = document.getElementById('error-msg');
+
+      err.style.display = 'none';
+
+      if (powered) {
+        btn.className = 'power-btn on';
+        status.textContent = 'ВКЛЮЧЕНО';
+        status.className = 'on';
+      } else {
+        btn.className = 'power-btn off';
+        status.textContent = 'ВЫКЛЮЧЕНО';
+        status.className = 'off';
+      }
+    }
+
+    function showError() {
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  </script>
+
 </body>
 </html>
